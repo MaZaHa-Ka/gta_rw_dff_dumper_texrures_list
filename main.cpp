@@ -427,7 +427,9 @@ bool CheckFrameStarts(const std::vector<std::string>& frameNames, std::string fr
     return false;
 }
 
-const std::vector<std::string> vehicleFrames = 
+
+//#define CHECK_EXTRA_NODES // todo
+const std::vector<std::string> mazahaka_vehicleFrames = 
 {
         "wheel_rf_dummy", "wheel_rm_dummy", "wheel_rb_dummy", "wheel_lf_dummy", "wheel_lm_dummy", "wheel_lb_dummy",
         "bump_front_dummy", "bonnet_dummy", "wing_rf_dummy", "wing_rr_dummy", "wing_lf_dummy", "wing_lr_dummy",
@@ -444,13 +446,139 @@ const std::vector<std::string> vehicleFrames =
         "_lo", "_vlo", "boat_hi",
 };
 
-const std::vector<std::string> pedFrames =
+const std::vector<std::string> mazahaka_lcs_pedFrames =
 {
     "Root", "Pelvis", "Spine", "Spine1", "L Thigh", "R Thigh", "R Calf", "R Foot", "R Toe0", "L Calf",
     "L Foot", "L Toe0", "Neck", "Head", "Bip01 L Clavicle", "Bip01 R Clavicle", "R UpperArm", "R Forearm",
     "R Hand", "R Finger", "L UpperArm", "L Forearm", "L Hand", "L Finger",
 };
-//int pedFramesCnt = 25; // ? size
+
+
+// re3 reVC Vehicle/PedModelInfo.cpp
+
+const std::vector<std::string> mazahaka_re3_pedFrames =
+{
+    "Smid", "Shead", "Supperarml", "Supperarmr", "SLhand", "SRhand", "Supperlegl", "Supperlegr", "Sfootl", "Sfootr", "Slowerlegr", "Storso",
+};
+
+const std::vector<std::string> mazahaka_re3_carIds =
+{
+    "wheel_rf_dummy",	
+    "wheel_rm_dummy",	
+    "wheel_rb_dummy",	
+    "wheel_lf_dummy",	
+    "wheel_lm_dummy",	
+    "wheel_lb_dummy",	
+    "bump_front_dummy"
+    "bonnet_dummy",	
+    "wing_rf_dummy",	
+    "wing_rr_dummy",	
+    "door_rf_dummy",	
+    "door_rr_dummy",	
+    "wing_lf_dummy",	
+    "wing_lr_dummy",	
+    "door_lf_dummy",	
+    "door_lr_dummy",	
+    "boot_dummy",		
+    "bump_rear_dummy",
+    "windscreen_dummy",
+    "ped_frontseat",
+    "ped_backseat",
+    "headlights",
+    "taillights",
+    "exhaust",
+    "extra1",
+    "extra2",
+    "extra3",
+    "extra4",
+    "extra5",
+    "extra6",
+};
+
+const std::vector<std::string> mazahaka_re3_boatIds = 
+{
+    "boat_moving_hi",
+    "boat_rudder_hi",
+    "boat_flap_left",
+    "boat_flap_right",
+    "boat_rearflap_left",
+    "boat_rearflap_right",
+    "windscreen",
+    "windscreen_hi_ok",
+    "ped_frontseat",
+};
+
+const std::vector<std::string> mazahaka_re3_trainIds =
+{
+    "door_lhs_dummy",
+    "door_rhs_dummy",
+    "light_front",
+    "light_rear",
+    "ped_left_entry",
+    "ped_mid_entry",
+    "ped_right_entry",
+};
+
+const std::vector<std::string> mazahaka_re3_ferryIds =
+{
+    "door_front_dummy",
+    "door_back_dummy",
+    "ramp_front_dummy",
+    "ramp_back_dummy",
+    "light_front",
+    "light_rear",
+    "chim_left",
+    "ped_point",
+    "car1_dummy",
+    "car2_dummy",
+    "car3_dummy",
+    "car4_dummy",
+};
+
+const std::vector<std::string> mazahaka_re3_heliIds =
+{
+   "chassis_dummy",
+   "toprotor",
+   "backrotor",
+   "tail",
+   "topknot",
+   "skid_left",
+   "skid_right",
+};
+
+const std::vector<std::string> mazahaka_re3_planeIds =
+{
+    "wheel_front_dummy",
+    "wheel_rear_dummy",
+    "light_tailplane",
+    "light_left",
+    "light_right",
+};
+
+const std::vector<std::string> mazahaka_re3_bikeIds =
+{
+    "chassis_dummy",
+    "forks_front",
+    "forks_rear",
+    "wheel_front",
+    "wheel_rear",
+    "mudguard",
+    "handlebars",
+    "ped_frontseat",
+    "ped_backseat",
+    "headlights",
+    "taillights",
+    "exhaust",	
+    "extra1",
+    "extra2",
+    "extra3",
+    "extra4",
+    "extra5",
+    "extra6",
+};
+// todo gta sa, gta vcs frame list hier plg name check!!
+
+
 
 
 //--rwbase.h
@@ -886,8 +1014,19 @@ void* ReadFramelist(std::ifstream* file)
             ////if (isVeh || isPed) { break; }
 
             gitype = DFF_MODELS_TYPES::MI_TYPE_OTHER; // default
-            if (CheckFrameStarts(vehicleFrames, std::string((char*)plglist[i].PLUGIN_PAYLOAD))) { gitype = DFF_MODELS_TYPES::MI_TYPE_VEHICLE; break; }
-            else if (CheckFrameStarts(pedFrames, std::string((char*)plglist[i].PLUGIN_PAYLOAD))) { gitype = DFF_MODELS_TYPES::MI_TYPE_PED; break; }
+            // vehs
+            if (CheckFrameStarts(mazahaka_vehicleFrames, std::string((char*)plglist[i].PLUGIN_PAYLOAD))) { gitype = DFF_MODELS_TYPES::MI_TYPE_VEHICLE; break; }
+            else if (CheckFrameStarts(mazahaka_re3_carIds, std::string((char*)plglist[i].PLUGIN_PAYLOAD))) { gitype = DFF_MODELS_TYPES::MI_TYPE_VEHICLE; break; }
+            else if (CheckFrameStarts(mazahaka_re3_boatIds, std::string((char*)plglist[i].PLUGIN_PAYLOAD))) { gitype = DFF_MODELS_TYPES::MI_TYPE_VEHICLE; break; }
+            else if (CheckFrameStarts(mazahaka_re3_trainIds, std::string((char*)plglist[i].PLUGIN_PAYLOAD))) { gitype = DFF_MODELS_TYPES::MI_TYPE_VEHICLE; break; }
+            else if (CheckFrameStarts(mazahaka_re3_ferryIds, std::string((char*)plglist[i].PLUGIN_PAYLOAD))) { gitype = DFF_MODELS_TYPES::MI_TYPE_VEHICLE; break; }
+            else if (CheckFrameStarts(mazahaka_re3_heliIds, std::string((char*)plglist[i].PLUGIN_PAYLOAD))) { gitype = DFF_MODELS_TYPES::MI_TYPE_VEHICLE; break; }
+            else if (CheckFrameStarts(mazahaka_re3_planeIds, std::string((char*)plglist[i].PLUGIN_PAYLOAD))) { gitype = DFF_MODELS_TYPES::MI_TYPE_VEHICLE; break; }
+            else if (CheckFrameStarts(mazahaka_re3_bikeIds, std::string((char*)plglist[i].PLUGIN_PAYLOAD))) { gitype = DFF_MODELS_TYPES::MI_TYPE_VEHICLE; break; }
+
+            // peds
+            else if (CheckFrameStarts(mazahaka_lcs_pedFrames, std::string((char*)plglist[i].PLUGIN_PAYLOAD))) { gitype = DFF_MODELS_TYPES::MI_TYPE_PED; break; }
+            else if (CheckFrameStarts(mazahaka_re3_pedFrames, std::string((char*)plglist[i].PLUGIN_PAYLOAD))) { gitype = DFF_MODELS_TYPES::MI_TYPE_PED; break; }
         }
     }
     //gitype = isVeh ? 1 : (isPed ? 2 : 0);
@@ -994,7 +1133,7 @@ std::vector<std::string> LoadDFF(const char* path, bool add_alpha_in_total_list 
 void test()
 {
     const char* dff = "taxi.dff"; // vehicle 1
-    //dff = "bar_barrier12.dff"; // other 0
+    dff = "bar_barrier12.dff"; // other 0
     //dff = "player.dff"; // ped 2 skin plg
     //dff = "vice2.dff"; // ped 2 skin plg
     std::vector<std::string> texes = LoadDFF(dff);
