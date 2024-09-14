@@ -421,8 +421,18 @@ struct MAZAHAKA_RW_PLUGIN
 
 bool CheckFrameStarts(const std::vector<std::string>& frameNames, std::string frame_name)
 {
-    for (const auto& prefix : frameNames) {
-        if (frame_name.find(prefix) == 0) { return true; }
+    bool tolowercheck = true;
+    if (tolowercheck)
+    {
+        for (const auto& prefix : frameNames) {
+            if (TOOLS::ToLower(frame_name).find(TOOLS::ToLower(prefix)) == 0) { return true; }
+        }
+    }
+    else
+    {
+        for (const auto& prefix : frameNames) {
+            if (frame_name.find(prefix) == 0) { return true; }
+        }
     }
     return false;
 }
@@ -451,6 +461,11 @@ const std::vector<std::string> mazahaka_lcs_pedFrames =
     "Root", "Pelvis", "Spine", "Spine1", "L Thigh", "R Thigh", "R Calf", "R Foot", "R Toe0", "L Calf",
     "L Foot", "L Toe0", "Neck", "Head", "Bip01 L Clavicle", "Bip01 R Clavicle", "R UpperArm", "R Forearm",
     "R Hand", "R Finger", "L UpperArm", "L Forearm", "L Hand", "L Finger",
+};
+
+const std::vector<std::string> mazahaka_weaponsFrames = // check  size 2?
+{
+    "object", "object_L0",
 };
 
 
@@ -669,6 +684,7 @@ enum DFF_MODELS_TYPES
     MI_TYPE_OTHER = 0,
     MI_TYPE_VEHICLE = 1,
     MI_TYPE_PED = 2,
+    MI_TYPE_WEAPON = 3,
 };
 int gitype = DFF_MODELS_TYPES::MI_TYPE_ERROR; // 0 other, 1 vehicle, 2 ped
 
@@ -1027,6 +1043,9 @@ void* ReadFramelist(std::ifstream* file)
             // peds
             else if (CheckFrameStarts(mazahaka_lcs_pedFrames, std::string((char*)plglist[i].PLUGIN_PAYLOAD))) { gitype = DFF_MODELS_TYPES::MI_TYPE_PED; break; }
             else if (CheckFrameStarts(mazahaka_re3_pedFrames, std::string((char*)plglist[i].PLUGIN_PAYLOAD))) { gitype = DFF_MODELS_TYPES::MI_TYPE_PED; break; }
+        
+            // objects (possible weapons, others) ---------------------------------------------------------------------------------\/ dont forget filter list by frames upper
+            else if (CheckFrameStarts(mazahaka_weaponsFrames, std::string((char*)plglist[i].PLUGIN_PAYLOAD)) && (plglist.size() == 2)) { gitype = DFF_MODELS_TYPES::MI_TYPE_WEAPON; break; }
         }
     }
     //gitype = isVeh ? 1 : (isPed ? 2 : 0);
@@ -1136,19 +1155,21 @@ void test()
     dff = "bar_barrier12.dff"; // other 0
     //dff = "player.dff"; // ped 2 skin plg
     //dff = "vice2.dff"; // ped 2 skin plg
+    dff = "m16.dff"; // weapon
+
     std::vector<std::string> texes = LoadDFF(dff);
     for (size_t i = 0; i < texes.size(); i++)
     {
         std::cout << i + 1 << ": name: " << texes[i] << "\n"; // tex
     }
-    std::cout << "type: " << (gitype == MI_TYPE_VEHICLE ? "veh" : (gitype == MI_TYPE_PED ? "ped" : "other")) << "\n"; // todo enum typed?
+    std::cout << "type: " << (gitype == MI_TYPE_VEHICLE ? "veh" : (gitype == MI_TYPE_PED ? "ped" : (gitype == MI_TYPE_WEAPON ? "weapon" : "other"))) << "\n"; // todo enum typed?
 }
 
 
 void Dump()
 {
     SetCurrDir();
-    const char* dffs_dir = "vcs_map_dffs";
+    const char* dffs_dir = "input_dffs";
     const char* out_dir = "log";
     std::vector<std::string> fs = LoadAllFilesFromFolder(dffs_dir, "dff");
     size_t totalFiles = fs.size();
@@ -1180,14 +1201,68 @@ void Dump()
     }
 }
 
+void SortVehPeds()
+{
+    SetCurrDir();
+    const char* dffs_dir = "input_dffs";
+    const char* out_dir = "sort";
+    std::string vp = std::string(out_dir) + "\\vehs";
+    std::string pp = std::string(out_dir) + "\\peds";
+    std::string wp = std::string(out_dir) + "\\possible_weap";
+    std::string op = std::string(out_dir) + "\\others";
+
+    TOOLS::createDirectory(std::string(out_dir));
+    TOOLS::createDirectory(vp);
+    TOOLS::createDirectory(pp);
+    TOOLS::createDirectory(wp);
+    TOOLS::createDirectory(op);
+
+    std::vector<std::string> fs = LoadAllFilesFromFolder(dffs_dir, "dff");
+    size_t totalFiles = fs.size();
+
+    for (size_t i = 0; i < totalFiles; i++)
+    {
+        //system("cls");
+        std::cout << "\n" << i << "/" << totalFiles;// << "\n";
+        bool add_alpha_in_total_list = true; // mask
+        std::vector<std::string> texes = LoadDFF(fs[i].c_str(), add_alpha_in_total_list); // gitype autoreset
+        //std::string fname = TOOLS::GetFileNameFromPath(fs[i], true);
+        std::string fnameext = TOOLS::GetFileNameFromPath(fs[i], false);
+
+        if (gitype == MI_TYPE_VEHICLE)
+        {
+            TOOLS::copyFile(fs[i], vp + "\\" + fnameext);
+            std::cout << " " << fnameext << " moved as MI_TYPE_VEHICLE";
+        }
+        else if (gitype == MI_TYPE_PED)
+        {
+            TOOLS::copyFile(fs[i], pp + "\\" + fnameext);
+            std::cout << " " << fnameext << " moved as MI_TYPE_PED";
+        }
+        else if (gitype == MI_TYPE_WEAPON)
+        {
+            TOOLS::copyFile(fs[i], wp + "\\" + fnameext);
+            std::cout << " " << fnameext << " moved as (object) MI_TYPE_WEAPON";
+        }
+        else if (gitype == MI_TYPE_OTHER)
+        {
+            TOOLS::copyFile(fs[i], op + "\\" + fnameext);
+            std::cout << " " << fnameext << " moved as (default) MI_TYPE_OTHER";
+        }
+        else { std::cout << "ERR choose!!" << "\n"; }
+    }
+}
+
+
 int main()
 {
     InitConsole(); // 1251
     SetCurrDir();
 
     //func();
-	test();
-    //Dump();
+	//test();
+    //Dump(); // tex list
+    SortVehPeds();
 
 	return 0;
 }

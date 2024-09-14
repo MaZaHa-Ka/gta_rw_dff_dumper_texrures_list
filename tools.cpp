@@ -168,4 +168,53 @@ namespace TOOLS {
 		// Если разделитель не найден, вернуть исходный путь как имя файла
 		return filePath;
 	}*/
+
+	bool createDirectory(const std::string& path) {
+		return CreateDirectory(path.c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS;
+	}
+
+	bool copyFile(const std::string& source, const std::string& destination) {
+		std::ifstream src(source, std::ios::binary);
+		std::ofstream dst(destination, std::ios::binary);
+
+		if (!src || !dst) {
+			std::cerr << "Error opening files!" << std::endl;
+			return false;
+		}
+
+		dst << src.rdbuf();
+		return true;
+	}
+
+
+	std::string ToUpper(std::string strToConvert)
+	{
+		std::transform(strToConvert.begin(), strToConvert.end(), strToConvert.begin(), std::toupper); //::toupper
+		return strToConvert;
+	}
+	std::string ToLower(std::string strToConvert)
+	{
+		std::transform(strToConvert.begin(), strToConvert.end(), strToConvert.begin(), std::tolower);
+		return strToConvert;
+	}
+
+	std::string Trim(std::string str)
+	{
+		// Find the first non-whitespace character from the beginning.
+		size_t start = str.find_first_not_of(" \t\n\r\f\v");
+
+		if (start == std::string::npos) {
+			// If the string consists only of whitespace, return an empty string.
+			return "";
+		}
+
+		// Find the last non-whitespace character from the end.
+		size_t end = str.find_last_not_of(" \t\n\r\f\v");
+
+		// Calculate the length of the trimmed substring.
+		size_t length = end - start + 1;
+
+		// Extract and return the trimmed substring.
+		return str.substr(start, length);
+	}
 }
